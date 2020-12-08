@@ -1,0 +1,17 @@
+49e55e40f1ce598bc42e6eff361e36c3 *DESCRIPTION
+daeb7d7bb86ace1875ff8a50b3b58a74 *NAMESPACE
+c49941efca1c8f933d129d59aa90178d *NEWS.md
+d38dcd0d17e609d449410643af33e484 *R/FormatData.R
+fb981d2db486d8b1838217d8223e6e10 *R/dataexamples.R
+ba0b7e6c0fec7f0f790cbc62ff6e1823 *R/gest.R
+70f3fde20e14979f422911f2d604ceea *R/gestboot.R
+7b431d13bcda7a58aec96a479bd55ade *R/gestcat.R
+5018f4471801f94c4b1cefd10296a09a *R/gestmult.R
+55a515011f3ed3832f4b7e15e7dfb661 *R/gestmultcat.R
+f4895791aad931c909d94ffdede6d515 *man/FormatData.Rd
+fdb4ab61c2053046912480ce9c088e82 *man/dataexamples.Rd
+c06bfc083f8ec5afd98aa09e2ed1f4fe *man/gest.Rd
+1aaad22bab88d8c45f0c096ce21160d5 *man/gestboot.Rd
+9cbbcf822880f900d863f1dc50b401ce *man/gestcat.Rd
+e62f4ddf80dd8c316f56e3db4ac8f4e0 *man/gestmult.Rd
+77a7eccfbfec104a13e2f01d96d5d708 *man/gestmultcat.Rd

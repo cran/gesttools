@@ -5,8 +5,8 @@
 #' intervals are also reported for multiple comparisons.
 #'
 #' @param gestfunc Name (without quotations) of the g-estimation function to run.
-#' One of \code{gest}, \code{gestmult}, \code{gestcat} or \code{gestmultcat}.
-#' @param data,idvar,timevar,Yn,An,Ybin,Abin,Lny,Lnp,type,Cn,LnC,cutoff
+#' One of \code{gestSingle} or \code{gestMultiple}.
+#' @param data,idvar,timevar,Yn,An,Ybin,Abin,Acat,Lny,Lnp,type,Cn,LnC,cutoff
 #' Same arguments as in gest functions, to be input into gestfunc.
 #' @param bn Number of bootstrapped datasets.
 #' @param alpha Confidence level of confidence intervals.
@@ -22,9 +22,10 @@
 #' For example, if \code{type=2}, and \eqn{\psi=(\psi_0,\psi_1)}, a separate confidence interval is fitted for \eqn{\psi_0} and \eqn{\psi_1}.}
 #' \item{conf.Bonferroni }{The upper and/or lower bounds of Bonferroni corrected confidence
 #' intervals for \eqn{\psi}, used for multiple comparisons.}
+#' \item{boot.results}{A tibble containing the result for each bootstrapped dataset}
 #'
 #' @examples
-#' datas<-dataexamples(n=500,seed=123,Censoring=FALSE)
+#' datas<-dataexamples(n=100,seed=123,Censoring=FALSE)
 #' data=datas$datagest
 #' idvar="id"
 #' timevar="time"
@@ -32,22 +33,25 @@
 #' An="A"
 #' Ybin=FALSE
 #' Abin=TRUE
+#' Acat=FALSE
 #' Lny=c("L","U")
 #' Lnp=c("L","U")
-#' gestfunc<-gest
+#' gestfunc=gestSingle
 #' type=2
 #' bn=5
 #' alpha=0.05
 #' Cn<-NA
 #' LnC<-NA
-#' gestboot(gest,data,idvar,timevar,Yn,An,Ybin,Abin,Lny,
-#' Lnp,type=1,bn=bn,alpha=alpha,onesided="twosided",seed=123)
+#' gestboot(gestfunc,data,idvar,timevar,Yn,An,Ybin,Abin,Acat,Lny,
+#' Lnp,type,bn=bn,alpha=alpha,onesided="twosided",seed=123)
 #'
 #' @export
-gestboot<-function(gestfunc,data,idvar,timevar,Yn,An,Ybin,Abin=NA,Lny,Lnp,
-type=1,Cn=NA,LnC=NA,cutoff=NA,bn=1000,alpha=0.05,onesided="twosided",seed=123,...){
+gestboot<-function(gestfunc,data,idvar,timevar,Yn,An,Ybin,Abin,Acat,Lny,Lnp,
+type,Cn=NA,LnC=NA,cutoff=NA,bn,alpha=0.05,onesided="twosided",seed=NULL,...){
 
-t0<-gestfunc(data=data,idvar=idvar,timevar=timevar,Yn=Yn,An=An,Ybin=Ybin,Abin=Abin,Lny=Lny,Lnp=Lnp,type=type,Cn=Cn,LnC=LnC,cutoff=cutoff)$psi
+if (!is.null(seed)) set.seed(seed)
+
+t0<-gestfunc(data=data,idvar=idvar,timevar=timevar,Yn=Yn,An=An,Ybin=Ybin,Abin=Abin,Acat=Acat,Lny=Lny,Lnp=Lnp,type=type,Cn=Cn,LnC=LnC,cutoff=cutoff)$psi
 nams<-names(t0)
 #Create tibble data based on ID
 Data<-data %>% nest_legacy(-all_of(idvar))
@@ -63,7 +67,7 @@ b<-as.data.frame(as_tibble(bs$splits[[j]]) %>% unnest_legacy())
 
 b<-b[order(b[,idvar],b[,timevar]),]
 
-results1[[j]]<-gestfunc(data=b,idvar=idvar,timevar=timevar,Yn=Yn,An=An,Ybin=Ybin,Abin=Abin,Lny=Lny,Lnp=Lnp,type=type,Cn=Cn,LnC=LnC,cutoff=cutoff)$psi
+results1[[j]]<-gestfunc(data=b,idvar=idvar,timevar=timevar,Yn=Yn,An=An,Ybin=Ybin,Abin=Abin,Acat=Acat,Lny=Lny,Lnp=Lnp,type=type,Cn=Cn,LnC=LnC,cutoff=cutoff)$psi
 results[[j]]<-unlist(results1[[j]])
 },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 }
@@ -114,10 +118,11 @@ if(onesided=="twosided"){
   conf.quant.bonf<-t(apply(results.sort,2,ci.quant.bonf.lower))
 }
 
+results<-list(original=t0,mean.boot=mean,conf=conf.quant,
+     conf.Bonferroni=conf.quant.bonf,boot.results=as_tibble(resultsmat))
 
+class(results)<-"Results"
 
-
-return(list(original=t0,mean.boot=mean,conf=conf.quant,
-conf.Bonferroni=conf.quant.bonf))
+return(results)
 
 }

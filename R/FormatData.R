@@ -59,13 +59,12 @@ if (!is.na(Cn)){
   varying<-c(varying,Cn)
 }
 
-datwide<-reshape(data,direction="wide",varying=varying)
-datrec<-reshape(datwide,direction="long")
+datwide<-reshape(data,direction="wide",timevar=timevar,idvar=idvar,v.names=varying)
+datrec<-reshape(datwide,direction="long",timevar=timevar,idvar=idvar)
 datrec<-datrec[order(datrec[,idvar],datrec[,timevar]),]
 
 if(GenerateHistory==TRUE){
   T<-max(datrec[,timevar])
-  data$time<-data[,timevar]
   if (T<=1)(stop('Lagged variables cannot be created with only 1 time period'))
   if(is.na(GenerateHistoryMax)==TRUE){
     GenerateHistoryMax<-T-1}
@@ -80,10 +79,10 @@ if(GenerateHistory==TRUE){
       if(is.factor(datrec[,name])==TRUE){
         datrec[,paste("Lag",i,name,sep="")]<-as.factor(datrec[,paste("Lag",i,name,sep="")])
         levels(datrec[,paste("Lag",i,name,sep="")])<-levels(datrec[,name])
-        datrec[datrec$time %in% seq(1,i,by=1),paste("Lag",i,name,sep="")]<-levels(datrec[,name])[1]
+        datrec[datrec[,timevar] %in% seq(1,i,by=1),paste("Lag",i,name,sep="")]<-levels(datrec[,name])[1]
 
       }else{
-        datrec[datrec$time %in% seq(1,i,by=1),paste("Lag",i,name,sep="")]<-0}
+        datrec[datrec[,timevar] %in% seq(1,i,by=1),paste("Lag",i,name,sep="")]<-0}
       }
     return(datrec)
     }

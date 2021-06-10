@@ -22,40 +22,38 @@
 #' datas<-dataexamples(n=100,seed=34567,Censoring=TRUE)
 #' data<-datas$datagestmultcat
 #' head(data,n=20)
+#' @importFrom stats plogis
 #'
 #' @export
 
-dataexamples<-function(n=1000,seed=seed,Censoring=FALSE){
+dataexamples<-function(n=1000,seed=NULL,Censoring=FALSE){
 
-expit<-function(x){
-exp(x)/(1+exp(x))
-}
+if (!is.null(seed)) set.seed(seed)
 
 n<-n
-set.seed(seed)
 id<-seq(1,n,by=1)
 U<-rnorm(n,0,1)
 L.1<-rnorm(n,1+U,1)
-a.1<-expit(1+0.1*L.1)
+a.1<-plogis(1+0.1*L.1)
 A.1<-rbinom(n,1,a.1)
 Y.1<-rnorm(n,1+A.1+L.1+U,1)
 
 L.2<-rnorm(n,1+(A.1/2)+L.1+U,1)
-a.2<-expit(1+0.1*L.2+0.1*A.1)
+a.2<-plogis(1+0.1*L.2+0.1*A.1)
 A.2<-rbinom(n,1,a.2)
 Y.2<-rnorm(n,1+(A.1/2)+A.2+L.1+L.2+U,1)
 
 L.3<-rnorm(n,1+(A.2/2)+L.2+U,1)
-a.3<-expit(1+0.1*L.3+0.1*A.2)
+a.3<-plogis(1+0.1*L.3+0.1*A.2)
 A.3<-rbinom(n,1,a.3)
 Y.3<-rnorm(n,1+(A.2/2)+A.3+L.1+L.2+L.3+U,1)
 #End of study Outcome
 Y<-rnorm(n,1+(A.2/2)+A.3+L.1+L.2+L.3+U,1)
 
 if(Censoring==TRUE){
-  C.1<-rbinom(n,1,expit(-1+0.001*A.1+0.001*L.1))
-  C.2<-rbinom(n,1,expit(-1+0.001*A.2+0.001*L.2))
-  C.3<-rbinom(n,1,expit(-1+0.001*A.3+0.001*L.3))
+  C.1<-rbinom(n,1,plogis(-1+0.001*A.1+0.001*L.1))
+  C.2<-rbinom(n,1,plogis(-1+0.001*A.2+0.001*L.2))
+  C.3<-rbinom(n,1,plogis(-1+0.001*A.3+0.001*L.3))
   C.2[C.1==1]<-1
   C.3[C.2==1]<-1
   Y[C.3==1]<-NA
@@ -109,7 +107,7 @@ set.seed(seed)
 id<-seq(1,n,by=1)
 U<-rnorm(n,0,1)
 L.1<-rnorm(n,1+U,1)
-a.1<-expit(1+0.1*L.1)
+a.1<-plogis(1+0.1*L.1)
 
 A.1<-as.vector(NULL)
 for (i in 1:n){
@@ -124,7 +122,7 @@ A.1par[A.1==letters[3]]<-3
 Y.1<-rnorm(n,1+A.1par+L.1+U,1)
 
 L.2<-rnorm(n,1+A.1par/2+L.1+U,1)
-a.2<-expit(1+0.1*L.2+A.1par)
+a.2<-plogis(1+0.1*L.2+A.1par)
 A.2<-as.vector(NULL)
 for (i in 1:n){
   A.2[i]<-sample(letters[1:3],1, replace=TRUE,
@@ -138,7 +136,7 @@ A.2par[A.2==letters[3]]<-3
 Y.2<-rnorm(n,1+A.1par/2+A.2par+L.1+L.2+U,1)
 
 L.3<-rnorm(n,1+A.2par/2+L.2+U,1)
-a.3<-expit(1+0.1*L.3+A.2par)
+a.3<-plogis(1+0.1*L.3+A.2par)
 A.3<-as.vector(NULL)
 for (i in 1:n){
   A.3[i]<-sample(letters[1:3],1, replace=TRUE,
@@ -154,9 +152,9 @@ Y.3<-rnorm(n,1+A.2par/2+A.3par+L.1+L.2+L.3+U,1)
 Y<-rnorm(n,1+A.2par/2+A.3par+L.1+L.2+L.3+U,1)
 
 if(Censoring==TRUE){
-  C.1<-rbinom(n,1,expit(-1+0.001*A.1par+0.001*L.1))
-  C.2<-rbinom(n,1,expit(-1+0.001*A.2par+0.001*L.2))
-  C.3<-rbinom(n,1,expit(-1+0.001*A.3par+0.001*L.3))
+  C.1<-rbinom(n,1,plogis(-1+0.001*A.1par+0.001*L.1))
+  C.2<-rbinom(n,1,plogis(-1+0.001*A.2par+0.001*L.2))
+  C.3<-rbinom(n,1,plogis(-1+0.001*A.3par+0.001*L.3))
   C.2[C.1==1]<-1
   C.3[C.2==1]<-1
   Y[C.3==1]<-NA

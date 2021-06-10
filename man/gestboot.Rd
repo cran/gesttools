@@ -12,25 +12,26 @@ gestboot(
   Yn,
   An,
   Ybin,
-  Abin = NA,
+  Abin,
+  Acat,
   Lny,
   Lnp,
-  type = 1,
+  type,
   Cn = NA,
   LnC = NA,
   cutoff = NA,
-  bn = 1000,
+  bn,
   alpha = 0.05,
   onesided = "twosided",
-  seed = 123,
+  seed = NULL,
   ...
 )
 }
 \arguments{
 \item{gestfunc}{Name (without quotations) of the g-estimation function to run.
-One of \code{gest}, \code{gestmult}, \code{gestcat} or \code{gestmultcat}.}
+One of \code{gestSingle} or \code{gestMultiple}.}
 
-\item{data, idvar, timevar, Yn, An, Ybin, Abin, Lny, Lnp, type, Cn, LnC, cutoff}{Same arguments as in gest functions, to be input into gestfunc.}
+\item{data, idvar, timevar, Yn, An, Ybin, Abin, Acat, Lny, Lnp, type, Cn, LnC, cutoff}{Same arguments as in gest functions, to be input into gestfunc.}
 
 \item{bn}{Number of bootstrapped datasets.}
 
@@ -51,6 +52,7 @@ Returns a list of the following four elements.
 For example, if \code{type=2}, and \eqn{\psi=(\psi_0,\psi_1)}, a separate confidence interval is fitted for \eqn{\psi_0} and \eqn{\psi_1}.}
 \item{conf.Bonferroni }{The upper and/or lower bounds of Bonferroni corrected confidence
 intervals for \eqn{\psi}, used for multiple comparisons.}
+\item{boot.results}{A tibble containing the result for each bootstrapped dataset}
 }
 \description{
 Generates percentile based confidence intervals for the causal parameters
@@ -58,7 +60,7 @@ of a fitted SNMM. Bonferroni corrected confidence
 intervals are also reported for multiple comparisons.
 }
 \examples{
-datas<-dataexamples(n=500,seed=123,Censoring=FALSE)
+datas<-dataexamples(n=100,seed=123,Censoring=FALSE)
 data=datas$datagest
 idvar="id"
 timevar="time"
@@ -66,15 +68,16 @@ Yn="Y"
 An="A"
 Ybin=FALSE
 Abin=TRUE
+Acat=FALSE
 Lny=c("L","U")
 Lnp=c("L","U")
-gestfunc<-gest
+gestfunc=gestSingle
 type=2
 bn=5
 alpha=0.05
 Cn<-NA
 LnC<-NA
-gestboot(gest,data,idvar,timevar,Yn,An,Ybin,Abin,Lny,
-Lnp,type=1,bn=bn,alpha=alpha,onesided="twosided",seed=123)
+gestboot(gestfunc,data,idvar,timevar,Yn,An,Ybin,Abin,Acat,Lny,
+Lnp,type,bn=bn,alpha=alpha,onesided="twosided",seed=123)
 
 }

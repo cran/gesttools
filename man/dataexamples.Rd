@@ -4,7 +4,7 @@
 \alias{dataexamples}
 \title{Generate Simulated Example Datasets}
 \usage{
-dataexamples(n = 1000, seed = seed, Censoring = FALSE)
+dataexamples(n = 1000, seed = NULL, Censoring = FALSE)
 }
 \arguments{
 \item{n}{Number of individuals in the dataset.}
@@ -33,5 +33,4 @@ head(data,n=20)
 datas<-dataexamples(n=100,seed=34567,Censoring=TRUE)
 data<-datas$datagestmultcat
 head(data,n=20)
-
 }

@@ -38,8 +38,7 @@ If \code{Cn} is specified, it is added to \code{varying} automatically.}
 corresponding to the lagged histories of all variables included in \code{varying}.
 These will be labeled as \code{LagVari} where \code{Var} is the variable name and \code{i}
 indicates how much the variable is lagged by. For example \code{LagAn2} is the value of \code{An}, 2
-time periods prior. Note that \code{LagAn1} is not generated as this is automatically included
-in the g-estimation functions.}
+time periods prior.}
 
 \item{GenerateHistoryMax}{An optional positive integer specifying \code{GenerateHistory} to generate exposure histories
 up to \code{GenerateHistoryMax} time periods prior.}
@@ -61,18 +60,22 @@ an \code{as.factor()} variable. Binary or continuous variables should be declare
 \code{as.numeric()} variable.
 }
 \examples{
-data<-dataexamples(n=1000,seed=3456,Censoring=TRUE)$datagest
-#To demonstrate the function we
-#Delete the third row, corresponding to the entry for ID 1 at time 3
-data<-data[-3,]
-datanew<-FormatData(data=data,idvar="id",timevar="time",An="A",
-varying=c("A","L"),GenerateHistory=FALSE,GenerateHistoryMax=NA)
+data <- dataexamples(n = 1000, seed = 3456, Censoring = TRUE)$datagest
+# To demonstrate the function we
+# Delete the third row, corresponding to the entry for ID 1 at time 3
+data <- data[-3, ]
+datanew <- FormatData(
+  data = data, idvar = "id", timevar = "time", An = "A",
+  Cn = "C", varying = c("A", "L"), GenerateHistory = TRUE, GenerateHistoryMax = 1
+)
 head(datanew)
-#Note that the missing entry has been re-added,
-#with missing values for A and L in the third row
-#An example with lagged history of time varying variables created.
-data<-dataexamples(n=1000,seed=3456,Censoring=TRUE)$datagestmultcat
-datanew<-FormatData(data=data,idvar="id",timevar="time",An="A",
-Cn="C",varying=c("A","L"),GenerateHistory=TRUE,GenerateHistoryMax=NA)
+# Note that the missing entry has been re-added,
+# with missing values for A and L in the third row
+# An example with lagged history of time varying variables created.
+data <- dataexamples(n = 1000, seed = 3456, Censoring = TRUE)$datagestmultcat
+datanew <- FormatData(
+  data = data, idvar = "id", timevar = "time", An = "A",
+  Cn = "C", varying = c("Y","A", "L"), GenerateHistory = TRUE, GenerateHistoryMax = NA
+)
 head(datanew)
 }

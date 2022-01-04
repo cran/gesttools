@@ -10,14 +10,12 @@ gestMultiple(
   timevar,
   Yn,
   An,
-  Ybin,
-  Abin,
-  Acat,
-  Lny,
-  Lnp,
-  type,
   Cn = NA,
-  LnC = NA,
+  outcomemodels,
+  propensitymodel,
+  censoringmodel = NULL,
+  type,
+  EfmVar = NA,
   cutoff = NA,
   ...
 )
@@ -34,41 +32,34 @@ Note that timevar must specify time periods as integer values starting from 1 (m
 
 \item{An}{Character string specifying the name of the time-varying exposure variable.}
 
-\item{Ybin}{TRUE or FALSE indicator of whether the outcome is binary.}
+\item{Cn}{Optional character string specifying the name of the censoring indicator variable. The variable specified in Cn should be a numeric vector taking values 0 or 1, with 1 indicating censored.}
 
-\item{Abin}{TRUE or FALSE indicator of whether the exposure is binary.}
+\item{outcomemodels}{a list of formulas or formula objects specifying the outcome models for Yn prior to adjustment by propensity score.
+The i'th entry of the list specifies the outcome model for the i step counterfactuals. See description for details.}
 
-\item{Acat}{TRUE OR FALSE indicator of whether the exposure is a categorical variable. Note that this argument will supercede the \code{Abin} argument if set to TRUE.}
+\item{propensitymodel}{A formula or formula object specifying the propensity score model for An.}
 
-\item{Lny}{Vector of character strings specifying the names of the
-confounders to be included in the outcome model in quotations.}
-
-\item{Lnp}{Vector of character strings specifying the names of the confounders
-to be included in the model calculating the propensity scores.}
+\item{censoringmodel}{A formula or formula object specifying the censoring model for Cn.}
 
 \item{type}{Value from 1-4 specifying SNMM type to fit. See details.}
 
-\item{Cn}{Optional character string specifying the name of the censoring indicator variable.
-The variable specified in Cn should be a numeric vector taking values 0 or 1, with 1 indicating censored.}
-
-\item{LnC}{Vector of character strings specifying the names of the covariates to be used in the censoring score model to calculate
-the censoring weights. Note that any variable in \code{LnC} should also be in \code{Lnp} for the validity of the censoring and propensity weights.}
+\item{EfmVar}{Character string specifying the name of the effect modifying variable for types 2 or 4.}
 
 \item{cutoff}{An integer taking value from 1 up to T, where T is the maximum value of timevar.
 Instructs the function to estimate causal effects based only on exposures up to \code{cutoff} time periods prior to
-the outcome. See details.}
+the outcome.}
 
 \item{...}{Additional arguments, currently not in use.}
 }
 \value{
 List of the fitted causal parameters of the posited SNMM. These are labeled as follows for each SNMM type, where An is
-set to the name of the exposure variable, i is the current value of c, and Lny[1] is set to the name of the first confounder in \code{Lny}.
+set to the name of the exposure variable, i is the current value of c, and EfmVar is the effect modifying variable.
 \item{\code{type=1} }{An: The effect of exposure at any time t on outcome at all subsequent times.}
-\item{\code{type=2} }{An: The effect of exposure on outcome at any time t, when Ln[1] is set to zero, on all subsequent outcome times.\cr
-An:Ln[1]: The effect modification by Lny[1], the additional effect of A on all subsequent Y for each unit increase in Lny[1] at all times t. }
+\item{\code{type=2} }{An: The effect of exposure on outcome at any time t, when EfmVar is set to zero, on all subsequent outcome times.\cr
+An:EfmVar: The effect modification by EfmVar, the additional effect of A on all subsequent Y for each unit increase in EfmVar at all times t. }
 \item{\code{type=3} }{c=i.An: The effect of exposure at any time t on outcome \code{c=i} time periods later.}
-\item{\code{type=4} }{c=i.An: The effect of exposure at any time t on outcome \code{c=i} time periods later, when Ln[1] is set to zero.\cr
-c=i.An:Ln[1]: The effect modification by Lny[1], the additional effect of exposure on outcome c=i time periods later for each unit increase in Lny[1]. }
+\item{\code{type=4} }{c=i.An: The effect of exposure at any time t on outcome \code{c=i} time periods later, when EfmVar is set to zero.\cr
+c=i.An:EfmVar: The effect modification by EfmVar, the additional effect of exposure on outcome c=i time periods later for each unit increase in EfmVar.}
 The function also returns a summary of the propensity scores and censoring scores via \code{PropensitySummary} and \code{CensoringSummary},
 along with \code{Data}, holding the original dataset with the propensity and censoring scores as a tibble dataset.
 }
@@ -87,13 +78,13 @@ By using the transform \eqn{t=s-c}, \code{gestmult} estimates the causal paramet
  if Y is binary. The SNMMs form is defined by the parameter \eqn{z_{sc}}, which can be controlled by the input \code{type} as follows
  \itemize{
  \item{\code{type=1} }{sets \eqn{z_{sc}=1}. This implies that \eqn{\psi} is now the effect of exposure at any time t on all subsequent outcome periods.}
- \item{\code{type=2} }{sets \eqn{z_{sc}=c(1,l_{s-c})} and adds affect modification by the first named variable in \code{Lny}, which we denote \eqn{L_t}. Now \eqn{\psi=c(\psi_0,\psi_1)} where \eqn{\psi_0} is the effect of exposure at any time t on all subsequent outcome periods, when \eqn{l_{s-c}=0} at all times t, modified by
+ \item{\code{type=2} }{sets \eqn{z_{sc}=c(1,l_{s-c})} and adds affect modification by the variable named in \code{EfmVar}, which we denote \eqn{l_t}. Now \eqn{\psi=c(\psi_0,\psi_1)} where \eqn{\psi_0} is the effect of exposure at any time t on all subsequent outcome periods, when \eqn{l_{s-c}=0} at all times t, modified by
  \eqn{\psi_1} for each unit increase in \eqn{l_{s-c}} at all times t. Note that effect modification
  is currently only supported for binary or continuous confounders.}
  \item{\code{type=3} }{can posit a time-varying causal effect for each value of \eqn{c}, that is the causal effect for the exposure on outcome \eqn{c} time periods later.
  We set \eqn{z_{sc}} to a vector of zeros of length T with a 1 in the \eqn{c=s-t}'th position. Now \eqn{\psi=c(\psi_{1},\ldots,\psi_{T})}
  where \eqn{\psi_(c)} is the effect of exposure on outcome \eqn{c} time periods later for all outcome periods \eqn{s>c} that is \eqn{A_{s-c}} on \eqn{Y_s}.}
- \item{\code{type=4} }{allows for a time-varying causal effect that can be modified by the first named variable in \code{Lny}, that is it allows for both time-varying effects and effect modification. It sets \eqn{z_{sc}} to a vector of zeros of length T with \eqn{c(1,l_{s-c})} in the \eqn{c=s-t}'th position.
+ \item{\code{type=4} }{allows for a time-varying causal effect that can be modified by \code{EfmVar}, denoted \eqn{l_t}, that is it allows for both time-varying effects and effect modification. It sets \eqn{z_{sc}} to a vector of zeros of length T with \eqn{c(1,l_{s-c})} in the \eqn{c=s-t}'th position.
  Now \eqn{\psi=(\underline{\psi_1},\ldots,\underline{\psi_T})} where \eqn{\underline{\psi_c}=c(\psi_{0c},\psi_{1c})}. Here \eqn{\psi_{0c}} is the effect of exposure on outcome \eqn{c} time periods later, given \eqn{l_{s-c}=0} for all \eqn{s>c}, modified by
  \eqn{\psi_{1c}} for each unit increase in \eqn{l_{s-c}} for all \eqn{s>c}. Note that effect modification
  is currently only supported for binary or continuous confounders.}
@@ -103,36 +94,44 @@ By using the transform \eqn{t=s-c}, \code{gestmult} estimates the causal paramet
  For example, data at time 1, should contain \eqn{A_1}, \eqn{L_1}, \eqn{Y_{2}}, and optionally \eqn{C_2}. If either A or Y are binary, they must be written as numeric vectors taking values either 0 or 1.
  The same is true for any covariate that is used for effect modification.\cr
  The data must be rectangular with a row entry for every individual for each exposure time 1 up to T. Data rows after censoring should be empty apart from the ID and time variables. This can be done using the function \code{\link{FormatData}}.\cr
- By default the censoring, propensity and outcome models include the exposure history at the previous time as a variable. One may consider also including all previous exposure and confounder history as variables in \code{Lny},\code{Lnp}, and \code{LnC} if necessary.\cr
- Censoring weights are handled as described in Sjolander and Vansteelandt (2016). Note that it is necessary that any variable included in \code{LnC} must also be in \code{Lnp}. Missing data not due to censoring are automatically handled by removing rows with missing data prior to fitting the model. If outcome models fail to fit, consider removing covariates from \code{Lny} but keeping
- them in \code{Lnp} to reduce collinearity issues, or consider the sparseness of the data.
+ The input outcomemodels should be a list with T elements (the number of exposure times), where element i describes the outcome model for up to the i step counterfactual outcomes, that is the model is fitted to all counterfactuals up to \code{Y_{s-i}}.
 }
 \examples{
-datas<-dataexamples(n=1000,seed=123,Censoring=FALSE)
-data=datas$datagestmult
-idvar="id"
-timevar="time"
-Yn="Y"
-An="A"
-Ybin=FALSE
-Abin=TRUE
-Acat=FALSE
-Lny=c("L","U")
-Lnp=c("L","U")
-Cn<-NA
-LnC<-NA
-type=NA
+datas <- dataexamples(n = 1000, seed = 123, Censoring = FALSE)
+data <- datas$datagestmult
+data <- FormatData(
+  data = data, idvar = "id", timevar = "time", An = "A",
+  varying = c("Y", "A", "L"), GenerateHistory = TRUE, GenerateHistoryMax = 1
+)
+idvar <- "id"
+timevar <- "time"
+Yn <- "Y"
+An <- "A"
+Cn <- NA
+outcomemodels <- list("Y~A+L+U+Lag1A", "Y~A+L+U+Lag1A", "Y~A+L+U")
+propensitymodel <- c("A~L+U+as.factor(time)+Lag1A")
+censoringmodel <- NULL
+EfmVar <- NA
+gestMultiple(data, idvar, timevar, Yn, An, Cn, outcomemodels, propensitymodel,
+  censoringmodel = NULL, type = 1, EfmVar,
+  cutoff = NA
+)
 
-gestMultiple(data,idvar,timevar,Yn,An,Ybin,Abin,Acat,Lny,Lnp,type=1)
-
-#Example with censoring
-datas<-dataexamples(n=1000,seed=123,Censoring=TRUE)
-data=datas$datagestmult
-Cn="C"
-LnC=c("L","U")
-gestMultiple(data,idvar,timevar,Yn,An,Ybin,Abin,Acat,Lny,Lnp,type=3,Cn,LnC,
-cutoff=2)
-
+# Example with censoring
+datas <- dataexamples(n = 1000, seed = 123, Censoring = TRUE)
+data <- datas$datagestmult
+data <- FormatData(
+  data = data, idvar = "id", timevar = "time", An = "A", Cn = "C",
+  varying = c("Y", "A", "L"), GenerateHistory = TRUE, GenerateHistoryMax = 1
+)
+Cn <- "C"
+EfmVar <- "L"
+outcomemodels <- list("Y~A+L+U+A:L+Lag1A", "Y~A+L+U+A:L+Lag1A", "Y~A+L+U+A:L")
+censoringmodel <- c("C~L+U+as.factor(time)")
+gestMultiple(data, idvar, timevar, Yn, An, Cn, outcomemodels, propensitymodel,
+  censoringmodel = censoringmodel, type = 2, EfmVar,
+  cutoff = 2
+)
 }
 \references{
 Vansteelandt, S., & Sjolander, A. (2016). Revisiting g-estimation of the Effect of a Time-varying Exposure Subject to Time-varying Confounding, Epidemiologic Methods, 5(1), 37-56. <doi:10.1515/em-2015-0005>.

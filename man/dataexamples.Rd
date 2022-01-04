@@ -16,21 +16,21 @@ If \code{Censoring=TRUE}, data entries for A, Y, L and U are set to missing afte
 }
 \value{
 Returns a list of four datasets labeled \code{datagest}, \code{datagestmult},
-\code{datagestcat}, and \code{datagestmultcat}, designed to demonstrate the respective
-functions.
+\code{datagestcat}, and \code{datagestmultcat}, designed to demonstrate an end of study outcome with a binary exposure (\code{datagest}), a time varying outcome study with a binary exposure (\code{datagestmult}),
+or an end of study or time varying outcome with a categorical exposure (\code{datagestcat} or \code{datagestmultcat}).
 }
 \description{
-The code simulates four datasets designed to demonstrate each of the four
-g-estimation functions of the package. These are used in the examples for each function
+The code simulates four datasets designed to demonstrate the
+g-estimation functions of the package. These are used in the examples
 in the user manual. Each dataset comprises of an outcome Y (time-varying or end of study), time-varying exposure A, time-varying confounder L,
 a baseline confounder U, and optionally a censoring indicator C over 3 time periods.
 }
 \examples{
-datas<-dataexamples(n=1000,seed=34567,Censoring=FALSE)
-data<-datas$datagest
-head(data,n=20)
-#Multiple outcome data with censoring
-datas<-dataexamples(n=100,seed=34567,Censoring=TRUE)
-data<-datas$datagestmultcat
-head(data,n=20)
+datas <- dataexamples(n = 1000, seed = 34567, Censoring = FALSE)
+data <- datas$datagest
+head(data, n = 20)
+# Multiple outcome data with censoring
+datas <- dataexamples(n = 100, seed = 34567, Censoring = TRUE)
+data <- datas$datagestmultcat
+head(data, n = 20)
 }

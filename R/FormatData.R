@@ -22,8 +22,7 @@
 #' corresponding to the lagged histories of all variables included in \code{varying}.
 #' These will be labeled as \code{LagVari} where \code{Var} is the variable name and \code{i}
 #' indicates how much the variable is lagged by. For example \code{LagAn2} is the value of \code{An}, 2
-#' time periods prior. Note that \code{LagAn1} is not generated as this is automatically included
-#' in the g-estimation functions.
+#' time periods prior.
 #' @param GenerateHistoryMax An optional positive integer specifying \code{GenerateHistory} to generate exposure histories
 #' up to \code{GenerateHistoryMax} time periods prior.
 #'
@@ -35,62 +34,66 @@
 #' \code{as.numeric()} variable.
 #'
 #' @examples
-#' data<-dataexamples(n=1000,seed=3456,Censoring=TRUE)$datagest
-#' #To demonstrate the function we
-#' #Delete the third row, corresponding to the entry for ID 1 at time 3
-#' data<-data[-3,]
-#' datanew<-FormatData(data=data,idvar="id",timevar="time",An="A",
-#' varying=c("A","L"),GenerateHistory=FALSE,GenerateHistoryMax=NA)
+#' data <- dataexamples(n = 1000, seed = 3456, Censoring = TRUE)$datagest
+#' # To demonstrate the function we
+#' # Delete the third row, corresponding to the entry for ID 1 at time 3
+#' data <- data[-3, ]
+#' datanew <- FormatData(
+#'   data = data, idvar = "id", timevar = "time", An = "A",
+#'   Cn = "C", varying = c("A", "L"), GenerateHistory = TRUE, GenerateHistoryMax = 1
+#' )
 #' head(datanew)
-#' #Note that the missing entry has been re-added,
-#' #with missing values for A and L in the third row
-#' #An example with lagged history of time varying variables created.
-#' data<-dataexamples(n=1000,seed=3456,Censoring=TRUE)$datagestmultcat
-#' datanew<-FormatData(data=data,idvar="id",timevar="time",An="A",
-#' Cn="C",varying=c("A","L"),GenerateHistory=TRUE,GenerateHistoryMax=NA)
+#' # Note that the missing entry has been re-added,
+#' # with missing values for A and L in the third row
+#' # An example with lagged history of time varying variables created.
+#' data <- dataexamples(n = 1000, seed = 3456, Censoring = TRUE)$datagestmultcat
+#' datanew <- FormatData(
+#'   data = data, idvar = "id", timevar = "time", An = "A",
+#'   Cn = "C", varying = c("Y","A", "L"), GenerateHistory = TRUE, GenerateHistoryMax = NA
+#' )
 #' head(datanew)
 #' @export
 
 
-FormatData<-function(data,idvar,timevar,An,varying,Cn=NA,GenerateHistory=FALSE,
-                     GenerateHistoryMax=NA){
-if(!is.data.frame(data))(stop("Either no data set has been given, or it is not in a data frame."))
-if (!is.na(Cn)){
-  varying<-c(varying,Cn)
-}
+FormatData <- function(data, idvar, timevar, An, varying, Cn = NA, GenerateHistory = FALSE,
+                       GenerateHistoryMax = NA) {
+  if (!is.data.frame(data)) (stop("Either no data set has been given, or it is not in a data frame."))
+  if (!is.na(Cn)) {
+    varying <- c(varying, Cn)
+  }
 
-datwide<-reshape(data,direction="wide",timevar=timevar,idvar=idvar,v.names=varying)
-datrec<-reshape(datwide,direction="long",timevar=timevar,idvar=idvar)
-datrec<-datrec[order(datrec[,idvar],datrec[,timevar]),]
+  datwide <- reshape(data, direction = "wide", timevar = timevar, idvar = idvar, v.names = varying)
+  datrec <- reshape(datwide, direction = "long", timevar = timevar, idvar = idvar)
+  datrec <- datrec[order(datrec[, idvar], datrec[, timevar]), ]
 
-if(GenerateHistory==TRUE){
-  T<-max(datrec[,timevar])
-  if (T<=1)(stop('Lagged variables cannot be created with only 1 time period'))
-  if(is.na(GenerateHistoryMax)==TRUE){
-    GenerateHistoryMax<-T-1}
-  varying<-varying[!(varying %in% Cn)]
-  histmax<-min(T-1,GenerateHistoryMax)
+  if (GenerateHistory == TRUE) {
+    T <- max(datrec[, timevar])
+    if (T <= 1) (stop("Lagged variables cannot be created with only 1 time period"))
+    if (is.na(GenerateHistoryMax) == TRUE) {
+      GenerateHistoryMax <- T - 1
+    }
+    varying <- varying[!(varying %in% Cn)]
+    histmax <- min(T - 1, GenerateHistoryMax)
 
-    #Function to generate lagged variables
-    lagged<-function(name){
-    for (i in 1:histmax){
-      datrec<-slide(data=datrec,Var=name,GroupVar="id",slideBy=-i,NewVar=paste("Lag",i,name,sep=""),reminder=F)
-      #Set Value of lagged variable that do not exists to either 0, or the reference category.
-      if(is.factor(datrec[,name])==TRUE){
-        datrec[,paste("Lag",i,name,sep="")]<-as.factor(datrec[,paste("Lag",i,name,sep="")])
-        levels(datrec[,paste("Lag",i,name,sep="")])<-levels(datrec[,name])
-        datrec[datrec[,timevar] %in% seq(1,i,by=1),paste("Lag",i,name,sep="")]<-levels(datrec[,name])[1]
-
-      }else{
-        datrec[datrec[,timevar] %in% seq(1,i,by=1),paste("Lag",i,name,sep="")]<-0}
+    # Function to generate lagged variables
+    lagged <- function(name) {
+      for (i in 1:histmax) {
+        datrec <- slide(data = datrec, Var = name, GroupVar = "id", slideBy = -i, NewVar = paste("Lag", i, name, sep = ""), reminder = F)
+        # Set Value of lagged variable that do not exists to either 0, or the reference category.
+        if (is.factor(datrec[, name]) == TRUE) {
+          datrec[, paste("Lag", i, name, sep = "")] <- as.factor(datrec[, paste("Lag", i, name, sep = "")])
+          levels(datrec[, paste("Lag", i, name, sep = "")]) <- levels(datrec[, name])
+          datrec[datrec[, timevar] %in% seq(1, i, by = 1), paste("Lag", i, name, sep = "")] <- levels(datrec[, name])[1]
+        } else {
+          datrec[datrec[, timevar] %in% seq(1, i, by = 1), paste("Lag", i, name, sep = "")] <- 0
+        }
       }
-    return(datrec)
+      return(datrec)
     }
 
-  datrec<-Reduce(merge,lapply(varying,lagged))
-  #Remove first lagged exposure as it is already generated by functions
-  datrec<-datrec[,-which(names(datrec) %in% c(paste("Lag",1,An,sep="")))]
+    datrec <- Reduce(merge, lapply(varying, lagged))
+  }
+
+
+  return(datrec)
 }
-
-
-return(datrec)}

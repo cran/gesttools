@@ -11,15 +11,13 @@ gestboot(
   timevar,
   Yn,
   An,
-  Ybin,
-  Abin,
-  Acat,
-  Lny,
-  Lnp,
+  Cn,
+  outcomemodels,
+  propensitymodel,
+  censoringmodel = NULL,
   type,
-  Cn = NA,
-  LnC = NA,
-  cutoff = NA,
+  EfmVar = NA,
+  cutoff,
   bn,
   alpha = 0.05,
   onesided = "twosided",
@@ -31,7 +29,7 @@ gestboot(
 \item{gestfunc}{Name (without quotations) of the g-estimation function to run.
 One of \code{gestSingle} or \code{gestMultiple}.}
 
-\item{data, idvar, timevar, Yn, An, Ybin, Abin, Acat, Lny, Lnp, type, Cn, LnC, cutoff}{Same arguments as in gest functions, to be input into gestfunc.}
+\item{data, idvar, timevar, Yn, An, Cn, outcomemodels, propensitymodel, censoringmodel, type, EfmVar, cutoff}{Same arguments as in gest functions, to be input into gestfunc.}
 
 \item{bn}{Number of bootstrapped datasets.}
 
@@ -60,24 +58,27 @@ of a fitted SNMM. Bonferroni corrected confidence
 intervals are also reported for multiple comparisons.
 }
 \examples{
-datas<-dataexamples(n=100,seed=123,Censoring=FALSE)
-data=datas$datagest
-idvar="id"
-timevar="time"
-Yn="Y"
-An="A"
-Ybin=FALSE
-Abin=TRUE
-Acat=FALSE
-Lny=c("L","U")
-Lnp=c("L","U")
-gestfunc=gestSingle
-type=2
-bn=5
-alpha=0.05
-Cn<-NA
-LnC<-NA
-gestboot(gestfunc,data,idvar,timevar,Yn,An,Ybin,Abin,Acat,Lny,
-Lnp,type,bn=bn,alpha=alpha,onesided="twosided",seed=123)
-
+datas <- dataexamples(n = 1000, seed = 123, Censoring = FALSE)
+data <- datas$datagest
+data <- FormatData(
+  data = data, idvar = "id", timevar = "time", An = "A",
+  varying = c("A", "L"), GenerateHistory = TRUE, GenerateHistoryMax = 1
+)
+idvar <- "id"
+timevar <- "time"
+Yn <- "Y"
+An <- "A"
+Cn <- NA
+outcomemodels <- list("Y~A+L+U+Lag1A", "Y~A+L+U+Lag1A", "Y~A+L+U+Lag1A")
+propensitymodel <- c("A~L+U+as.factor(time)+Lag1A")
+censoringmodel <- NULL
+type <- 1
+EfmVar <- NA
+bn <- 5
+alpha <- 0.05
+gestfunc <- gestSingle
+gestboot(gestfunc, data, idvar, timevar, Yn, An, Cn, outcomemodels, propensitymodel,
+  censoringmodel = NULL, type = 1, EfmVar,
+  bn = bn, alpha = alpha, onesided = "twosided", seed = 123
+)
 }
